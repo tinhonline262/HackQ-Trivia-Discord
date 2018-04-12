@@ -57,7 +57,8 @@ async def websocket_handler(uri, headers, client=None, channel=None):
 
                     if "error" in message_data and message_data["error"] == "Auth not valid":
                         logging.debug(message_data)
-                        raise RuntimeError("Connection settings invalid")
+                        await client.send_message(bot_channel, "Connection settings invalid")
+                        #raise RuntimeError("Connection settings invalid")
                     elif message_data["type"] != "interaction":
                         logging.debug(message_data)
                         if message_data["type"] == "question":
@@ -65,19 +66,20 @@ async def websocket_handler(uri, headers, client=None, channel=None):
                             answers = [unidecode(ans["text"])
                                        for ans in message_data["answers"]]
                             if channel and client:
-                                await client.send_message(channel, "\n" * 5)
-                                await client.send_message(channel, "Question detected.")
-                                await client.send_message(channel, "Question {message_data['questionNumber']} out of {message_data['questionCount']}")
-                                await client.send_message(channel, question_str)
-                                await client.send_message(channel, answers)
-
-                            print("\n" * 5)
-                            print("Question detected.")
-                            print(
-                                "Question {message_data['questionNumber']} out of {message_data['questionCount']}")
-                            print(question_str)
-                            print(answers)
-                            print()
-                            print(await question.answer_question(question_str, answers))
+                                message_text = '\n' * 5 + "\nQuestion detected\n" + \
+                                    "Question {message_data['questionNumber']} out of {message_data['questionCount']}\n" + \
+                                    question_str + '\n' + answers
+                                await client.send_message(channel, message_text)
+                                answer = await question.answer_question(question_str, answers)
+                                await client.send_message(channel, answer)
+                            else:
+                                print("\n" * 5)
+                                print("Question detected.")
+                                print(
+                                    "Question {message_data['questionNumber']} out of {message_data['questionCount']}")
+                                print(question_str)
+                                print(answers)
+                                print()
+                                print(await question.answer_question(question_str, answers))
 
     print("Socket closed")
