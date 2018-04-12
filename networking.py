@@ -14,8 +14,8 @@ async def fetch(url, session, timeout):
         async with session.get(url, timeout=timeout) as response:
             return await response.text()
     except Exception:
-        print(f"Server timeout/error to {url}")
-        logging.exception(f"Server timeout/error to {url}")
+        print("Server timeout/error to {url}")
+        logging.exception("Server timeout/error to {url}")
         return ""
 
 
@@ -41,9 +41,11 @@ async def get_json_response(url, timeout, headers):
             return await response.json()
 
 
-async def websocket_handler(uri, headers):
+async def websocket_handler(uri, headers, client=None, channel=None):
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect(uri, headers=headers, heartbeat=5, timeout=30) as ws:
+            if channel and client:
+                await client.send_message(channel, "Connected")
             print("Connected")
             async for msg in ws:
                 if msg.type == aiohttp.WSMsgType.TEXT:
@@ -51,19 +53,28 @@ async def websocket_handler(uri, headers):
                     message = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", message)
 
                     message_data = json.loads(message)
-                    logging.info(str(message_data).encode("utf-8"))
+                    logging.debug(str(message_data).encode("utf-8"))
 
                     if "error" in message_data and message_data["error"] == "Auth not valid":
-                        logging.info(message_data)
+                        logging.debug(message_data)
                         raise RuntimeError("Connection settings invalid")
                     elif message_data["type"] != "interaction":
-                        logging.info(message_data)
+                        logging.debug(message_data)
                         if message_data["type"] == "question":
                             question_str = unidecode(message_data["question"])
-                            answers = [unidecode(ans["text"]) for ans in message_data["answers"]]
+                            answers = [unidecode(ans["text"])
+                                       for ans in message_data["answers"]]
+                            if channel and client:
+                                await client.send_message(channel, "\n" * 5)
+                                await client.send_message(channel, "Question detected.")
+                                await client.send_message(channel, "Question {message_data['questionNumber']} out of {message_data['questionCount']}")
+                                await client.send_message(channel, question_str)
+                                await client.send_message(channel, answers)
+
                             print("\n" * 5)
                             print("Question detected.")
-                            print(f"Question {message_data['questionNumber']} out of {message_data['questionCount']}")
+                            print(
+                                "Question {message_data['questionNumber']} out of {message_data['questionCount']}")
                             print(question_str)
                             print(answers)
                             print()

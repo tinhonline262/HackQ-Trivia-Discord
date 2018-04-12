@@ -63,8 +63,9 @@ def get_google_links(page, num_results):
     for r in results:
         url = r.find("a")
         if url is not None:
-            links.append(url["href"])
-    links = list(dict.fromkeys(links))  # Remove duplicates while preserving order
+            links.append(url["hre"])
+    # Remove duplicates while preserving order
+    links = list(dict.fromkeys(links))
 
     return links[:num_results]
 

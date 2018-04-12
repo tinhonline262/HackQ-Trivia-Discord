@@ -5,8 +5,10 @@ from collections import defaultdict
 
 import search
 
-punctuation_to_none = str.maketrans({key: None for key in "!\"#$%&\'()*+,-.:;<=>?@[\\]^_`{|}~�"})
-punctuation_to_space = str.maketrans({key: " " for key in "!\"#$%&\'()*+,-.:;<=>?@[\\]^_`{|}~�"})
+punctuation_to_none = str.maketrans(
+    {key: None for key in "!\"#$%&\'()*+,-.:;<=>?@[\\]^_`{|}~�"})
+punctuation_to_space = str.maketrans(
+    {key: " " for key in "!\"#$%&\'()*+,-.:;<=>?@[\\]^_`{|}~�"})
 
 
 async def answer_question(question, original_answers):
@@ -29,7 +31,7 @@ async def answer_question(question, original_answers):
     quoted = re.findall('"([^"]*)"', question_lower)  # Get all words in quotes
     no_quote = question_lower
     for quote in quoted:
-        no_quote = no_quote.replace(f"\"{quote}\"", "1placeholder1")
+        no_quote = no_quote.replace("\"{quote}\"", "1placeholder1")
 
     question_keywords = search.find_keywords(no_quote)
     for quote in quoted:
@@ -59,16 +61,17 @@ async def answer_question(question, original_answers):
         if q_word_location > len(question) // 2 or q_word_location == -1:
             key_nouns.update(search.find_nouns(question, num_words=5))
         else:
-            key_nouns.update(search.find_nouns(question, num_words=5, reverse=True))
+            key_nouns.update(search.find_nouns(
+                question, num_words=5, reverse=True))
 
         key_nouns -= {"type"}
 
     key_nouns = [noun.lower() for noun in key_nouns]
-    print(f"Question nouns: {key_nouns}")
+    print("Question nouns: {key_nouns}")
     answer3 = await __search_method3(list(set(question_keywords)), key_nouns, original_answers, reverse)
     print(answer3)
 
-    print(f"Search took {time.time() - start} seconds")
+    print("Search took {time.time() - start} seconds")
     return ""
 
 
@@ -85,7 +88,7 @@ async def __search_method1(texts, answers, reverse):
 
     for text in texts:
         for answer in counts:
-            counts[answer] += len(re.findall(f" {answer} ", text))
+            counts[answer] += len(re.findall(" {answer} ", text))
 
     print(counts)
 
@@ -105,15 +108,17 @@ async def __search_method2(texts, answers, reverse):
     :return: Answer whose keywords occur most/least in the texts
     """
     print("Running method 2")
-    counts = {answer: {keyword: 0 for keyword in search.find_keywords(answer)} for answer in answers}
+    counts = {answer: {keyword: 0 for keyword in search.find_keywords(
+        answer)} for answer in answers}
 
     for text in texts:
         for keyword_counts in counts.values():
             for keyword in keyword_counts:
-                keyword_counts[keyword] += len(re.findall(f" {keyword} ", text))
+                keyword_counts[keyword] += len(re.findall(" {keyword} ", text))
 
     print(counts)
-    counts_sum = {answer: sum(keyword_counts.values()) for answer, keyword_counts in counts.items()}
+    counts_sum = {answer: sum(keyword_counts.values())
+                  for answer, keyword_counts in counts.items()}
 
     if not all(c == 0 for c in counts_sum.values()):
         return min(counts_sum, key=counts_sum.get) if reverse else max(counts_sum, key=counts_sum.get)
@@ -160,7 +165,7 @@ async def __search_method3(question_keywords, question_key_nouns, answers, rever
 
         for text in texts:
             for keyword, score_types in word_score_map.items():
-                score = len(re.findall(f" {keyword} ", text))
+                score = len(re.findall(" {keyword} ", text))
                 if "KW" in score_types:
                     keyword_score += score
                 if "KN" in score_types:
@@ -172,9 +177,10 @@ async def __search_method3(question_keywords, question_key_nouns, answers, rever
         answer_noun_scores_map[answer] = noun_score_map
 
     print()
-    print("\n".join([f"{answer}: {dict(scores)}" for answer, scores in answer_noun_scores_map.items()]))
+    print("\n".join(["{answer}: {dict(scores)}" for answer,
+                     scores in answer_noun_scores_map.items()]))
     print()
 
-    print(f"Keyword scores: {keyword_scores}")
-    print(f"Noun scores: {noun_scores}")
+    print("Keyword scores: {keyword_scores}")
+    print("Noun scores: {noun_scores}")
     return min(noun_scores, key=noun_scores.get) if reverse else max(noun_scores, key=noun_scores.get)
