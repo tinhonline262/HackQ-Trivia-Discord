@@ -1,1 +1,1 @@
-worker: hq_main.py
+worker: python3 hq_main.py
