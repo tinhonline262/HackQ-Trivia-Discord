@@ -1,1 +1,1 @@
-web: python hq_main.py
+worker: hq_main.py
