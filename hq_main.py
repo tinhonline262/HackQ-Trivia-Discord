@@ -9,7 +9,7 @@ import networking
 logging.basicConfig(filename="data.log", level=logging.DEBUG, filemode="w")
 
 # Read in bearer token and user ID
-BEARER_TOKEN = ""
+BEARER_TOKEN = "TOKEN"
 USER_ID = "701460974493892739"
 
 main_url = "https://api-quiz.hype.space/shows/now?type=hq&userId={USER_ID}"
